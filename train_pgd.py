@@ -92,7 +92,7 @@ if __name__=='__main__':
     parser.add_argument('--workers', default=0, type=int, metavar='N',help='number of data loading workers (default: 8)')
     parser.add_argument('--half', action='store_true', help='use half-precision(16-bit) ')
     parser.add_argument('--seed', default=0, type=int,  help='provide seed')
-    parser.add_argument('--print-freq', default=1, type=int,  help='frequency of printing batch results')
+    parser.add_argument('--print-freq', default=100, type=int,  help='frequency of printing batch results')
     parser.add_argument('--limit-test', default=0, type=int,  help='limit the number of batches to test')
     parser.add_argument('--debug', action='store_true',  help='enable debug mode')
     parser.add_argument('--store-act', action='store_true',  help='store activations')
@@ -204,7 +204,7 @@ if __name__=='__main__':
         model.load_state_dict(checkpoint['state_dict'])
         best_val_acc = checkpoint['valacc']
         best_train_acc = checkpoint['trainacc']
-        best_test_acc = checkpoint['testacc']
+        best_test_acc = checkpoint['clean_testacc']
         args.start_epoch = checkpoint['epoch']
     elif args.pretrained: #---- for Finetuning
         logging.info('==> finetuning the model from .. {}'.format(args.pretrained))        
@@ -241,12 +241,12 @@ if __name__=='__main__':
         best_val_acc = max(valacc, best_val_acc)
 
         logging.info('Val Epoch: {}\t({:.2f}%)]\tLoss: {:.6f}'.format(epoch, valacc, val_loss))
-        logging.info('Test Epoch: {}\t({:.2f}%)]\tLoss: {:.6f}'.format(epoch, testacc, test_loss))
+        logging.info('Test Epoch: {}\t({:.2f}%)]\tLoss: {:.6f}'.format(epoch, clean_testacc, clean_test_loss))
 
 
         
         if is_best:
-            torch.save({'state_dict': model.state_dict(), 'trainacc': trainacc, 'testacc' : testacc, 'valacc': valacc, 'epoch' : epoch}, os.path.join(save_path, 'best_model.th'))
+            torch.save({'state_dict': model.state_dict(), 'trainacc': trainacc, 'testacc' : clean_testacc, 'valacc': valacc, 'epoch' : epoch}, os.path.join(save_path, 'best_model.th'))
             print('Saving Best Model')
             best_clean_test_acc = clean_testacc
             best_train_acc = trainacc
@@ -258,6 +258,6 @@ if __name__=='__main__':
         logging.info(' * Best Model Test  Adversarial Prec@1 {}'.format(best_adv_test_acc))
         
         
-        results.add(epoch=epoch, train_loss=train_loss, test_loss=test_loss, train_error1=100 - trainacc, test_error1=100 - testacc)
+        results.add(epoch=epoch, train_loss=train_loss, test_loss=clean_test_loss, train_error1=100 - trainacc, test_error1=100 - clean_testacc)
         results.save()
         
