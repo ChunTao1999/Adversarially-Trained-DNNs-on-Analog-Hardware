@@ -600,7 +600,7 @@ class Linear_mvm_function(Function):
                 adc_bit += bit_slice
         device = input.device
 
-        if ind:
+        if Xbar_params['genieX']:
             XBAR_COL_SIZE = Xbar_params['size']
             XBAR_ROW_SIZE = Xbar_params['size']
         else:

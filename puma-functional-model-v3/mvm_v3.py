@@ -250,7 +250,7 @@ def mvm_tensor_nonid(
                 input_VG = torch.cat((G_real_flatten, V_int), 3) # concat along the input dim of XB so total inputs = r^2+r
                 output_real = output_real_out.permute(1,2,0,3).reshape(output_real_out.shape[0]*output_real_out.shape[1]*output_real_out.shape[2], output_real_out.shape[3]) # reshaped to # currents, col currents 
                 input_VG_flatten = input_VG.permute(1,2,0,3,4).reshape(batch_size*input_VG.shape[1]*input_VG.shape[2], input_VG.shape[3])
-                output_niratio = model(input_VG_flatten)
+                output_niratio = Xbar_model(input_VG_flatten)
                 output_niratio_unscale = (output_niratio) * in_diff + inmin_test
                 output_bias = output_bias_all.expand(batch_size, output_bias_all.shape[1], xbars_col, XBAR_COL_SIZE, 1).permute(1,2, 0,3,4).reshape(batch_size*xbars_row*xbars_col,XBAR_ROW_SIZE)
                 output_analog_xbar = (output_real-output_bias).div(output_niratio_unscale)
@@ -302,7 +302,7 @@ def mvm_tensor_nonid(
                     input_VG = torch.cat((G_real_flatten, V_int[xsign]), 3)
                     output_real = output_real_out[xsign].permute(1,2,0,3).reshape(output_real_out.shape[1]*output_real_out.shape[2]*output_real_out.shape[3], output_real_out.shape[4])
                     input_VG_flatten = input_VG.permute(1,2,0,3,4).reshape(batch_size*input_VG.shape[1]*input_VG.shape[2], input_VG.shape[3])
-                    output_niratio = model(input_VG_flatten)
+                    output_niratio = Xbar_model(input_VG_flatten)
                     output_niratio_unscale = (output_niratio) * in_diff + inmin_test
                     output_bias = output_bias_all[xsign].expand(batch_size, output_bias_all.shape[2], xbars_col, XBAR_ROW_SIZE, 1).permute(1,2, 0,3,4).reshape(batch_size*xbars_row*xbars_col,XBAR_ROW_SIZE)
                     output_analog_xbar = (output_real-output_bias).div(output_niratio_unscale)

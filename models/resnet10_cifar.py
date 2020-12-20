@@ -173,7 +173,7 @@ class MVM_Model(nn.Module):
         ibit_total = mvm_params['ibit_total']
         self.Xbar_params = mvm_params[args.mvm_type]
         adc_bit = mvm_params['adc_bit']
-        acm_bits = mvm_params['acm_bit']
+        acm_bits = mvm_params['acm_bits']
         acm_bit_frac = mvm_params['acm_bit_frac']
         if mvm_params[args.mvm_type]['genieX']:
             print("loading Xbar model from ===> {}".format(self.Xbar_params['path']))
@@ -212,34 +212,6 @@ class MVM_Model(nn.Module):
         self.bn112      = nn.BatchNorm2d(16*self.inflate)
         #---- post-merge activation
         self.relu11    = nn.ReLU(inplace=True)
-        #---- Block 1.2
-        #---- Layer 1.2.1
-        self.conv121    = Conv2d_mvm( 16*self.inflate,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False, 
-                                        bit_slice=bit_slice_in, bit_stream=bit_stream_in, weight_bits=wbit_total, weight_bit_frac=wbit_frac, input_bits=ibit_total, input_bit_frac=ibit_frac, 
-                                        adc_bit=adc_bit, acm_bits=acm_bits, acm_bit_frac=acm_bit_frac)
-        self.bn121      = nn.BatchNorm2d(16*self.inflate)
-        self.relu121    = nn.ReLU(inplace=True)
-        #---- Layer 1.2.2
-        self.conv122    = Conv2d_mvm( 16*self.inflate,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False, 
-                                        bit_slice=bit_slice_in, bit_stream=bit_stream_in, weight_bits=wbit_total, weight_bit_frac=wbit_frac, input_bits=ibit_total, input_bit_frac=ibit_frac, 
-                                        adc_bit=adc_bit, acm_bits=acm_bits, acm_bit_frac=acm_bit_frac)
-        self.bn122      = nn.BatchNorm2d(16*self.inflate)
-        #---- post-merge activation
-        self.relu12    = nn.ReLU(inplace=True)
-        #---- Block 1.3
-        #---- Layer 1.3.1
-        self.conv131    = Conv2d_mvm( 16*self.inflate,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False, 
-                                        bit_slice=bit_slice_in, bit_stream=bit_stream_in, weight_bits=wbit_total, weight_bit_frac=wbit_frac, input_bits=ibit_total, input_bit_frac=ibit_frac, 
-                                        adc_bit=adc_bit, acm_bits=acm_bits, acm_bit_frac=acm_bit_frac)
-        self.bn131      = nn.BatchNorm2d(16*self.inflate)
-        self.relu131    = nn.ReLU(inplace=True)
-        #---- Layer 1.3.2
-        self.conv132    = Conv2d_mvm( 16*self.inflate,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False, 
-                                        bit_slice=bit_slice_in, bit_stream=bit_stream_in, weight_bits=wbit_total, weight_bit_frac=wbit_frac, input_bits=ibit_total, input_bit_frac=ibit_frac, 
-                                        adc_bit=adc_bit, acm_bits=acm_bits, acm_bit_frac=acm_bit_frac)
-        self.bn132      = nn.BatchNorm2d(16*self.inflate)
-        #---- post-merge activation
-        self.relu13    = nn.ReLU(inplace=True)
         #---- Group 2 (32x) (32x32 -> 16x16)
         #---- Block 2.1
         self.resconv21  = Conv2d_mvm( 16*self.inflate,32*self.inflate, kernel_size=1, stride=2, padding =0, bias=False, 
@@ -259,34 +231,6 @@ class MVM_Model(nn.Module):
         self.bn212      = nn.BatchNorm2d(32*self.inflate)
         #---- post activation
         self.relu21     = nn.ReLU(inplace=True)
-        #---- Block 2.2
-        #---- Layer 2.2.1
-        self.conv221    = Conv2d_mvm( 32*self.inflate,32*self.inflate, kernel_size=3, stride=1, padding=1, bias=False, 
-                                        bit_slice=bit_slice_in, bit_stream=bit_stream_in, weight_bits=wbit_total, weight_bit_frac=wbit_frac, input_bits=ibit_total, input_bit_frac=ibit_frac, 
-                                        adc_bit=adc_bit, acm_bits=acm_bits, acm_bit_frac=acm_bit_frac)
-        self.bn221      = nn.BatchNorm2d(32*self.inflate)
-        self.relu221    = nn.ReLU(inplace=True)
-        #---- Layer 2.2.2
-        self.conv222    = Conv2d_mvm( 32*self.inflate,32*self.inflate, kernel_size=3, stride=1, padding=1, bias=False, 
-                                    bit_slice=bit_slice_in, bit_stream=bit_stream_in, weight_bits=wbit_total, weight_bit_frac=wbit_frac, input_bits=ibit_total, input_bit_frac=ibit_frac, 
-                                    adc_bit=adc_bit, acm_bits=acm_bits, acm_bit_frac=acm_bit_frac)
-        self.bn222      = nn.BatchNorm2d(32*self.inflate)
-        #---- post-merge activation
-        self.relu22     = nn.ReLU(inplace=True)
-        #---- Block 2.3
-        #---- Layer 2.3.1
-        self.conv231    = Conv2d_mvm( 32*self.inflate,32*self.inflate, kernel_size=3, stride=1, padding=1, bias=False, 
-                                        bit_slice=bit_slice_in, bit_stream=bit_stream_in, weight_bits=wbit_total, weight_bit_frac=wbit_frac, input_bits=ibit_total, input_bit_frac=ibit_frac, 
-                                        adc_bit=adc_bit, acm_bits=acm_bits, acm_bit_frac=acm_bit_frac)
-        self.bn231      = nn.BatchNorm2d(32*self.inflate)
-        self.relu231    = nn.ReLU(inplace=True)
-        #---- Layer 2.3.2
-        self.conv232    = Conv2d_mvm( 32*self.inflate,32*self.inflate, kernel_size=3, stride=1, padding=1, bias=False, 
-                                        bit_slice=bit_slice_in, bit_stream=bit_stream_in, weight_bits=wbit_total, weight_bit_frac=wbit_frac, input_bits=ibit_total, input_bit_frac=ibit_frac, 
-                                        adc_bit=adc_bit, acm_bits=acm_bits, acm_bit_frac=acm_bit_frac)
-        self.bn232      = nn.BatchNorm2d(32*self.inflate)
-        #---- post-merge activation
-        self.relu23     = nn.ReLU(inplace=True)
         #---- Group 3 (64x) (16x16 -> 8x8)
         #---- Block 3.1
         self.resconv31  = Conv2d_mvm(32*self.inflate,64*self.inflate, kernel_size=1, stride=2, padding =0, bias=False, 
@@ -320,20 +264,6 @@ class MVM_Model(nn.Module):
         self.bn322      = nn.BatchNorm2d(64*self.inflate)
         #---- post-merge activation
         self.relu32     = nn.ReLU(inplace=True)
-        #---- Block 3.3
-        #---- Layer 3.3.1
-        self.conv331    = Conv2d_mvm(64*self.inflate,64*self.inflate, kernel_size=3, stride=1, padding=1, bias=False, 
-                                        bit_slice=bit_slice_in, bit_stream=bit_stream_in, weight_bits=wbit_total, weight_bit_frac=wbit_frac, input_bits=ibit_total, input_bit_frac=ibit_frac, 
-                                        adc_bit=adc_bit, acm_bits=acm_bits, acm_bit_frac=acm_bit_frac)
-        self.bn331      = nn.BatchNorm2d(64*self.inflate)
-        self.relu331    = nn.ReLU(inplace=True)
-        #---- Layer 3.3.2
-        self.conv332    = Conv2d_mvm(64*self.inflate,64*self.inflate, kernel_size=3, stride=1, padding=1, bias=False,
-                                        bit_slice=bit_slice_in, bit_stream=bit_stream_in, weight_bits=wbit_total, weight_bit_frac=wbit_frac, input_bits=ibit_total, input_bit_frac=ibit_frac, 
-                                        adc_bit=adc_bit, acm_bits=acm_bits, acm_bit_frac=acm_bit_frac)
-        self.bn332      = nn.BatchNorm2d(64*self.inflate)
-        #---- post-merge activation
-        self.relu33     = nn.ReLU(inplace=True)
         #---- Linear Classifier
         self.linear     = Linear_mvm(64*self.inflate, self.classes, bias=False, 
                                         bit_slice = bit_slice_in, bit_stream = bit_stream_in, weight_bits=wbit_total, weight_bit_frac=wbit_frac, input_bits=ibit_total, input_bit_frac=ibit_frac, 
@@ -364,30 +294,6 @@ class MVM_Model(nn.Module):
         #---- add residual
         out+=residual
         out = self.relu11(out)
-        #---- Block 1.2
-        residual = out.clone()
-        #---- Layer 1.2.1
-        out = self.conv121(out, self.Xbar_params, self.Xbar_model)
-        out = self.bn121(out)
-        out = self.relu121(out)
-        #---- Layer 1.2.2
-        out = self.conv122(out, self.Xbar_params, self.Xbar_model)
-        out = self.bn122(out)
-        #---- add residual
-        out+=residual
-        out = self.relu12(out)
-        #---- Block 1.3
-        residual = out.clone()
-        #---- Layer 1.3.1
-        out = self.conv131(out, self.Xbar_params, self.Xbar_model)
-        out = self.bn131(out)
-        out = self.relu131(out)
-        #---- Layer 1.3.2
-        out = self.conv132(out, self.Xbar_params, self.Xbar_model)
-        out = self.bn132(out)
-        #---- add residual
-        out+=residual
-        out = self.relu13(out)
         #---- Group 2 
         #---- Block 2.1
         residual = out.clone() 
@@ -403,30 +309,6 @@ class MVM_Model(nn.Module):
         #---- add residual
         out+=residual
         out = self.relu21(out)
-        #---- Block 2.2
-        residual = out.clone() 
-        #---- Layer 2.2.1 
-        out = self.conv221(out, self.Xbar_params, self.Xbar_model)
-        out = self.bn221(out)
-        out = self.relu221(out)
-        #---- Layer 2.2.2
-        out = self.conv222(out, self.Xbar_params, self.Xbar_model)
-        out = self.bn222(out)
-        #---- add residual
-        out+=residual
-        out = self.relu22(out)
-        #---- Block 2.3
-        residual = out.clone() 
-        #---- Layer 2.3.1
-        out = self.conv231(out, self.Xbar_params, self.Xbar_model)
-        out = self.bn231(out)
-        out = self.relu231(out)
-        #---- Layer 2.3.2
-        out = self.conv232(out, self.Xbar_params, self.Xbar_model)
-        out = self.bn232(out)
-        #---- add residual
-        out+=residual
-        out = self.relu23(out)
         #---- Group 3
         #---- Block 3.1
         residual = out.clone() 
@@ -454,18 +336,6 @@ class MVM_Model(nn.Module):
         #---- add residual
         out+=residual
         out = self.relu32(out)
-        #---- Block 3.3
-        residual = out.clone() 
-        #---- Layer 3.3.1 
-        out = self.conv331(out, self.Xbar_params, self.Xbar_model)
-        out = self.bn331(out)
-        out = self.relu331(out)
-        #---- Layer 3.3.2
-        out = self.conv332(out, self.Xbar_params, self.Xbar_model)
-        out = self.bn332(out)
-        #---- add residual
-        out+=residual
-        out = self.relu33(out)
         #---- BNReLU
         out = F.avg_pool2d(out, out.size()[3])
         out = out.view(out.size(0), -1)
