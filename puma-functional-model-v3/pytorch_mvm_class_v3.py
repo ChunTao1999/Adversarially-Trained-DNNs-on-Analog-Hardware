@@ -179,8 +179,7 @@ class Conv2d_mvm_function(Function):
             bit_slice*torch.arange(bit_slice_num-1, -1, -1).float()
         ).to(device)
 
-        Gon = 1000/Xbar_params['Ron']
-        Goff = Gon/Xbar_params['Ron_Roff'] 
+         
                 
         Nstates_slice = 2**bit_slice-1  
 
@@ -202,6 +201,8 @@ class Conv2d_mvm_function(Function):
             ).float().to(device) # for 32-fixed  
             
             if Xbar_params['genieX'] == True:
+                Gon = 1000/Xbar_params['Ron']
+                Goff = Gon/Xbar_params['Ron_Roff']
                 output_analog = torch.zeros(
                     input_batch*num_pixel, 
                     xbars_row, 
@@ -670,9 +671,6 @@ class Linear_mvm_function(Function):
         for i in range(bit_slice_num):
             shift_add_bit_slice[-i-1] = 2**(bit_slice*i)        
         
-        Gon = 1000/Xbar_params['Ron']
-        Goff = Gon/Xbar_params['Ron_Roff'] 
-
         Nstates_slice = 2**bit_slice-1 
         
         if bit_stream ==1:
@@ -681,6 +679,8 @@ class Linear_mvm_function(Function):
             shift_add_bit_slice = shift_add_bit_slice.expand((input_batch, xbars_row, xbars_col, XBAR_COL_SIZE//bit_slice_num, bit_slice_num)).to(device)
             output_reg = torch.zeros(input_batch, xbars_row, xbars_col, bit_stream_num, XBAR_COL_SIZE//bit_slice_num).to(device) # for 32-fixed  
             if Xbar_params['genieX'] == True:
+                Gon = 1000/Xbar_params['Ron']
+                Goff = Gon/Xbar_params['Ron_Roff']
                 output_analog = torch.zeros(input_batch, xbars_row, xbars_col, XBAR_COL_SIZE).to(device)
                 Goffmat = Goff*torch.ones(input_batch, xbars_row, 1, XBAR_ROW_SIZE, 1).to(device)
                 G_real0 = (xbars[0]*(Gon - Goff)/Nstates_slice + Goff)

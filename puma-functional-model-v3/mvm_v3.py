@@ -116,6 +116,8 @@ def mvm_tensor(zeros, shift_add_bit_stream, shift_add_bit_slice, output_reg, fla
     xbars_row = xbars.shape[0]
     batch_size = flatten_input.shape[0]
     bit_stream_num = input_bits//bit_stream
+    XBAR_COL_SIZE = 64
+    XBAR_ROW_SIZE = 64
 
     if bit_stream == 1:
         for i in range(bit_stream_num): # 16bit input

@@ -28,7 +28,7 @@ mvm_params['16x16_100k']['Ron']         = 100*10*3
 mvm_params['16x16_100k']['Ron_Roff']    = 6
 mvm_params['16x16_100k']['inmax_test']  = 1.22
 mvm_params['16x16_100k']['inmin_test']  = 0.81
-mvm_params['16x16_100k']['path']        = './puma-functional-model/genieX_models/final_16x16_mlp2layer_xbar_16x16_100_all_dataset_500_100k_standard_sgd.pth.tar'
+mvm_params['16x16_100k']['path']        = './genieX_models/final_16x16_mlp2layer_xbar_16x16_100_all_dataset_500_100k_standard_sgd.pth.tar'
 mvm_params['16x16_100k']['genieX']      = True
 #---- 32x32_100k
 mvm_params['32x32_100k']                = {}
