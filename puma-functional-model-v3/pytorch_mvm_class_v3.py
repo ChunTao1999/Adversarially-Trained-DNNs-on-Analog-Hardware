@@ -268,9 +268,12 @@ class Conv2d_mvm_function(Function):
             ).to(device)
 
             if Xbar_params['genieX'] == True:
+                Gon = 1000/Xbar_params['Ron']
+                Goff = Gon/Xbar_params['Ron_Roff']
                 output_analog = torch.zeros(
                     2, input_batch*num_pixel, xbars_row, xbars_col, XBAR_COL_SIZE
                 ).to(device)
+
 
                 Goffmat = Goff*torch.ones(
                     2, input_batch*num_pixel, xbars_row, 1, XBAR_ROW_SIZE, 1
@@ -703,6 +706,8 @@ class Linear_mvm_function(Function):
                 2, input_batch, xbars_row, xbars_col, bit_stream_num, XBAR_COL_SIZE//bit_slice_num
             ).to(device) 
             if Xbar_params['genieX'] == True:
+                Gon = 1000/Xbar_params['Ron']
+                Goff = Gon/Xbar_params['Ron_Roff']
                 output_analog = torch.zeros(2, input_batch, xbars_row, xbars_col, XBAR_COL_SIZE).to(device)
                 Goffmat = Goff*torch.ones(2, input_batch, xbars_row, 1, XBAR_ROW_SIZE, 1).to(device)
                 G_real0 = (xbars[0]*(Gon - Goff)/Nstates_slice +Goff)
