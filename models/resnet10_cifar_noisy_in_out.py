@@ -11,6 +11,8 @@ import torch.nn.functional as F
 from pytorch_mvm_class_v3 import Conv2d_mvm, Linear_mvm, NN_model
 from custom_normalization_functions import custom_3channel_img_normalization_with_dataset_params
 from gaussian_noise import GaussianNoise
+import pdb
+from collections import OrderedDict
                                                         
 mean=[0.485, 0.456, 0.406]
 std=[0.229, 0.224, 0.225]
@@ -360,7 +362,7 @@ class MVM_Model(nn.Module):
         return out
 
 
-class Model_NoisetoConv(nn.Module):
+class Model_NoisetoOneConv(nn.Module):
     def __init__(self, args):
         super(Model_NoisetoConv, self).__init__()
         
@@ -370,11 +372,12 @@ class Model_NoisetoConv(nn.Module):
         self.use_custom_norm = args.custom_norm
         self.store_act = args.store_act
         self.noise_layer = args.noise_layer
+        self.noise_sigma = args.noise_sigma/10.0
 
         #---- Layer 0
         self.conv0  = nn.Conv2d(3,16, kernel_size=3, stride=1, padding=1, bias=False)
         if self.noise_layer == 0:
-            self.noise0 = GaussianNoise(0.1)
+            self.noise0 = GaussianNoise(sigma=self.noise_sigma)
         self.bn0    = nn.BatchNorm2d(16)
         self.relu0  = nn.ReLU(inplace=True)
         #---- Group 1 (16x) (32x32 -> 32x32)
@@ -385,13 +388,13 @@ class Model_NoisetoConv(nn.Module):
         #---- Layer 1.1.1
         self.conv111    = nn.Conv2d(16,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         if self.noise_layer == 1:
-            self.noise111 = GaussianNoise(0.1)
+            self.noise111 = GaussianNoise(sigma=self.noise_sigma)
         self.bn111      = nn.BatchNorm2d(16*self.inflate)
         self.relu111    = nn.ReLU(inplace=True)
         #---- Layer 1.1.2
         self.conv112    = nn.Conv2d(16*self.inflate,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         if self.noise_layer == 2:
-            self.noise112 = GaussianNoise(0.1)
+            self.noise112 = GaussianNoise(sigma=self.noise_sigma)
         self.bn112      = nn.BatchNorm2d(16*self.inflate)
         #---- post-merge activation
         self.relu11    = nn.ReLU(inplace=True)
@@ -403,13 +406,13 @@ class Model_NoisetoConv(nn.Module):
         #---- Layer 2.1.1
         self.conv211    = nn.Conv2d(16*self.inflate,32*self.inflate, kernel_size=3, stride=2, padding=1, bias=False)
         if self.noise_layer == 3:
-            self.noise211 = GaussianNoise(0.1)
+            self.noise211 = GaussianNoise(sigma=self.noise_sigma)
         self.bn211      = nn.BatchNorm2d(32*self.inflate)
         self.relu211    = nn.ReLU(inplace=True)
         #---- Layer 2.1.2
         self.conv212    = nn.Conv2d(32*self.inflate,32*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         if self.noise_layer == 4:
-            self.noise212 = GaussianNoise(0.1)
+            self.noise212 = GaussianNoise(sigma=self.noise_sigma)
         self.bn212      = nn.BatchNorm2d(32*self.inflate)
         #---- post activation
         self.relu21     = nn.ReLU(inplace=True)
@@ -421,13 +424,13 @@ class Model_NoisetoConv(nn.Module):
         #---- Layer 3.1.1
         self.conv311    = nn.Conv2d(32*self.inflate,64*self.inflate, kernel_size=3, stride=2, padding=1, bias=False)
         if self.noise_layer == 5:
-            self.noise311 = GaussianNoise(0.1)
+            self.noise311 = GaussianNoise(sigma=self.noise_sigma)
         self.bn311      = nn.BatchNorm2d(64*self.inflate)
         self.relu311    = nn.ReLU(inplace=True)
         #---- Layer 3.1.2
         self.conv312    = nn.Conv2d(64*self.inflate,64*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         if self.noise_layer == 6:
-            self.noise312 = GaussianNoise(0.1)
+            self.noise312 = GaussianNoise(sigma=self.noise_sigma)
         self.bn312      = nn.BatchNorm2d(64*self.inflate)
         #---- post-merge activation
         self.relu31     = nn.ReLU(inplace=True)
@@ -435,13 +438,13 @@ class Model_NoisetoConv(nn.Module):
         #---- Layer 3.2.1
         self.conv321    = nn.Conv2d(64*self.inflate,64*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         if self.noise_layer == 7:
-            self.noise321 = GaussianNoise(0.1)
+            self.noise321 = GaussianNoise(sigma=self.noise_sigma)
         self.bn321      = nn.BatchNorm2d(64*self.inflate)
         self.relu321    = nn.ReLU(inplace=True)
         #---- Layer 3.2.2
         self.conv322    = nn.Conv2d(64*self.inflate,64*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
         if self.noise_layer == 8:
-            self.noise322 = GaussianNoise(0.1)
+            self.noise322 = GaussianNoise(sigma=self.noise_sigma)
         self.bn322      = nn.BatchNorm2d(64*self.inflate)
         #---- post-merge activation
         self.relu32     = nn.ReLU(inplace=True)
@@ -555,68 +558,82 @@ class Model_NoisetoConv(nn.Module):
 
 
 
-class Model_ConvOut(nn.Module):
+class Model_NoisetoEveryConv(nn.Module):
     def __init__(self, args):
-        super(Model_ConvOut, self).__init__()
+        super(Model_NoisetoEveryConv, self).__init__()
         
         self.classes = args.classes 
         self.inflate = args.inflate        
         self.custom_norm = custom_3channel_img_normalization_with_dataset_params(mean, std, [3,32,32], 'cuda')
         self.use_custom_norm = args.custom_norm
         self.store_act = args.store_act
+        self.noise_sigma = args.noise_sigma/10.0
+
         #---- Layer 0
         self.conv0  = nn.Conv2d(3,16, kernel_size=3, stride=1, padding=1, bias=False)
+        self.noise0 = GaussianNoise(sigma=self.noise_sigma)
         self.bn0    = nn.BatchNorm2d(16)
         self.relu0  = nn.ReLU(inplace=True)
         #---- Group 1 (16x) (32x32 -> 32x32)
         #---- Block 1.1
-        self.resconv11  =nn.Sequential(
-                                nn.Conv2d(16,16*self.inflate, kernel_size=1, stride=1, padding =0, bias=False),
-                                nn.BatchNorm2d(16*self.inflate),)
+        self.resconv11  = nn.Sequential(OrderedDict({
+                                        '0':nn.Conv2d(16,16*self.inflate, kernel_size=1, stride=1, padding =0, bias=False),
+                                        'gauss':GaussianNoise(sigma=self.noise_sigma),
+                                        '1':nn.BatchNorm2d(16*self.inflate),}))
         #---- Layer 1.1.1
         self.conv111    = nn.Conv2d(16,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
+        self.noise111 = GaussianNoise(sigma=self.noise_sigma)
         self.bn111      = nn.BatchNorm2d(16*self.inflate)
         self.relu111    = nn.ReLU(inplace=True)
         #---- Layer 1.1.2
         self.conv112    = nn.Conv2d(16*self.inflate,16*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
+        self.noise112 = GaussianNoise(sigma=self.noise_sigma)
         self.bn112      = nn.BatchNorm2d(16*self.inflate)
         #---- post-merge activation
         self.relu11    = nn.ReLU(inplace=True)
         #---- Group 2 (32x) (32x32 -> 16x16)
         #---- Block 2.1
-        self.resconv21  = nn.Sequential(
-                            nn.Conv2d(16*self.inflate,32*self.inflate, kernel_size=1, stride=2, padding =0, bias=False),
-                            nn.BatchNorm2d(32*self.inflate),)
+        self.resconv21  = nn.Sequential(OrderedDict({
+                                        '0':nn.Conv2d(16*self.inflate,32*self.inflate, kernel_size=1, stride=2, padding =0, bias=False),
+                                        'gauss':GaussianNoise(sigma=self.noise_sigma),
+                                        '1':nn.BatchNorm2d(32*self.inflate),}))
         #---- Layer 2.1.1
         self.conv211    = nn.Conv2d(16*self.inflate,32*self.inflate, kernel_size=3, stride=2, padding=1, bias=False)
+        self.noise211 = GaussianNoise(sigma=self.noise_sigma)
         self.bn211      = nn.BatchNorm2d(32*self.inflate)
         self.relu211    = nn.ReLU(inplace=True)
         #---- Layer 2.1.2
         self.conv212    = nn.Conv2d(32*self.inflate,32*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
+        self.noise212 = GaussianNoise(sigma=self.noise_sigma)
         self.bn212      = nn.BatchNorm2d(32*self.inflate)
         #---- post activation
         self.relu21     = nn.ReLU(inplace=True)
         #---- Group 3 (64x) (16x16 -> 8x8)
         #---- Block 3.1
-        self.resconv31  = nn.Sequential(
-                            nn.Conv2d(32*self.inflate,64*self.inflate, kernel_size=1, stride=2, padding =0, bias=False),
-                            nn.BatchNorm2d(64*self.inflate),)
+        self.resconv31  = nn.Sequential(OrderedDict({
+                                        '0':nn.Conv2d(32*self.inflate,64*self.inflate, kernel_size=1, stride=2, padding =0, bias=False),
+                                        'gauss':GaussianNoise(sigma=self.noise_sigma),
+                                        '1':nn.BatchNorm2d(64*self.inflate),}))
         #---- Layer 3.1.1
         self.conv311    = nn.Conv2d(32*self.inflate,64*self.inflate, kernel_size=3, stride=2, padding=1, bias=False)
+        self.noise311 = GaussianNoise(sigma=self.noise_sigma)
         self.bn311      = nn.BatchNorm2d(64*self.inflate)
         self.relu311    = nn.ReLU(inplace=True)
         #---- Layer 3.1.2
         self.conv312    = nn.Conv2d(64*self.inflate,64*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
+        self.noise312 = GaussianNoise(sigma=self.noise_sigma)
         self.bn312      = nn.BatchNorm2d(64*self.inflate)
         #---- post-merge activation
         self.relu31     = nn.ReLU(inplace=True)
         #---- Block 3.2
         #---- Layer 3.2.1
         self.conv321    = nn.Conv2d(64*self.inflate,64*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
+        self.noise321 = GaussianNoise(sigma=self.noise_sigma)
         self.bn321      = nn.BatchNorm2d(64*self.inflate)
         self.relu321    = nn.ReLU(inplace=True)
         #---- Layer 3.2.2
         self.conv322    = nn.Conv2d(64*self.inflate,64*self.inflate, kernel_size=3, stride=1, padding=1, bias=False)
+        self.noise322 = GaussianNoise(sigma=self.noise_sigma)
         self.bn322      = nn.BatchNorm2d(64*self.inflate)
         #---- post-merge activation
         self.relu32     = nn.ReLU(inplace=True)
@@ -624,18 +641,24 @@ class Model_ConvOut(nn.Module):
         self.linear     = nn.Linear(64*self.inflate, self.classes, bias = False)
         self.apply(_weights_init)
             
-            
   
     def forward(self, x):
+        out_before = out_after = 0
         if self.use_custom_norm:
             out = self.custom_norm(x)
             #print('using custom norm')
         else:
             out = x
-        convout = {}
+
+        #dictionaries for conv outputs before and after noise
+        convout_before_noise = {}
+        convout_after_noise = {}
+        
         #---- Layer 0
-        out = self.conv0(out)
-        convout['conv0'] = out.clone()
+        out = self.conv0(out) 
+        convout_before_noise['conv0'] = out.clone()
+        out = self.noise0(out)
+        convout_after_noise['conv0'] = out.clone()
         out = self.bn0(out)
         out = self.relu0(out)
         #---- Group 1 (16out)
@@ -645,15 +668,19 @@ class Model_ConvOut(nn.Module):
             residual = self.resconv11(residual)
         #---- Layer 1.1.1
         out = self.conv111(out)
-        convout['conv111'] = out.clone()
+        convout_before_noise['conv111'] = out.clone()
+        out = self.noise111(out)
+        convout_after_noise['conv111'] = out.clone()
         out = self.bn111(out)
         out = self.relu111(out)
         #---- Layer 1.1.2
         out = self.conv112(out)
-        convout['conv112'] = out.clone()
+        convout_before_noise['conv112'] = out.clone()
+        out = self.noise112(out)
+        convout_after_noise['conv112'] = out.clone()
         out = self.bn112(out)
         #---- add residual
-        out+=residual
+        out+=residual        
         out = self.relu11(out)       
         #---- Group 2
         #---- Block 2.1
@@ -661,12 +688,16 @@ class Model_ConvOut(nn.Module):
         residual = self.resconv21(residual)
         #---- Layer 2.1.1
         out = self.conv211(out)
-        convout['conv211'] = out.clone()
+        convout_before_noise['conv211'] = out.clone()
+        out = self.noise211(out)
+        convout_after_noise['conv211'] = out.clone()
         out = self.bn211(out)
         out = self.relu211(out)
         #---- Layer 2.1.2
         out = self.conv212(out)
-        convout['conv212'] = out.clone()
+        convout_before_noise['conv212'] = out.clone()
+        out = self.noise212(out)
+        convout_after_noise['conv212'] = out.clone()
         out = self.bn212(out)
         #---- add residual
         out+=residual
@@ -677,12 +708,16 @@ class Model_ConvOut(nn.Module):
         residual = self.resconv31(residual) 
         #---- Layer 3.1.1
         out = self.conv311(out)
-        convout['conv311'] = out.clone()
+        convout_before_noise['conv311'] = out.clone()
+        out = self.noise311(out)
+        convout_after_noise['conv311'] = out.clone()
         out = self.bn311(out)
         out = self.relu311(out)
         #---- Layer 3.1.2
         out = self.conv312(out)
-        convout['conv312'] = out.clone()
+        convout_before_noise['conv312'] = out.clone()
+        out = self.noise312(out)
+        convout_after_noise['conv312'] = out.clone()
         out = self.bn312(out)
         #---- add residual
         out+=residual
@@ -691,21 +726,26 @@ class Model_ConvOut(nn.Module):
         residual = out.clone() 
         #---- Layer 3.2.1 
         out = self.conv321(out)
-        convout['conv321'] = out.clone()
+        convout_before_noise['conv321'] = out.clone()
+        out = self.noise321(out)
+        convout_after_noise['conv321'] = out.clone()
         out = self.bn321(out)
         out = self.relu321(out)
         #---- Layer 3.2.2
         out = self.conv322(out)
-        convout['conv322'] = out.clone()
+        convout_before_noise['conv322'] = out.clone()
+        out = self.noise322(out)
+        convout_after_noise['conv322'] = out.clone()
         out = self.bn322(out)
         #---- add residual
         out+=residual
         out = self.relu32(out)
+        if self.store_act:
+            return convout_before_noise, convout_after_noise
+        #pdb.set_trace()
         #---- BNReLU
         out = F.avg_pool2d(out, out.size()[3])
         out = out.view(out.size(0), -1)
         out = self.linear(out)
-        
-        return convout
-
+        return out
 
