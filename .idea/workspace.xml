@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="b5b1614b-6230-4cfe-ac3e-7f4ef36787db" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/attacks.py" beforeDir="false" afterPath="$PROJECT_DIR$/attacks.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/custom_normalization_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/custom_normalization_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluate.py" beforeDir="false" afterPath="$PROJECT_DIR$/evaluate.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/resnet10_cifar.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/resnet10_cifar.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mvm_params.py" beforeDir="false" afterPath="$PROJECT_DIR$/mvm_params.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/plot_stats.py" beforeDir="false" afterPath="$PROJECT_DIR$/plot_stats.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/puma-functional-model-v3/mvm_v3.py" beforeDir="false" afterPath="$PROJECT_DIR$/puma-functional-model-v3/mvm_v3.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/puma-functional-model-v3/pytorch_mvm_class_v3.py" beforeDir="false" afterPath="$PROJECT_DIR$/puma-functional-model-v3/pytorch_mvm_class_v3.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train_pgd.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_pgd.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train_vanilla.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_vanilla.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/compare_act.py" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="ProjectId" id="20W3FeTEk3LyPpgCh9kIUxFjmq8" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="terminal" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="b5b1614b-6230-4cfe-ac3e-7f4ef36787db" name="Changes" comment="" />
+      <created>1636146414303</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1636146414303</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+</project>
