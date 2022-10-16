@@ -57,6 +57,56 @@ def ModelClone(model_to, model_from):
     return model_to
 
 
+def ModelClone_hybrid(model_to, model_from):
+    weights_conv = []
+    weights_lin = []
+    bn_data = []
+    bn_bias = []
+    running_mean = []
+    running_var = []
+    num_batches = []
+
+    for m in model_from.modules():
+        if isinstance(m, nn.Conv2d):
+            weights_conv.append(m.weight.data.clone())
+        elif isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.BatchNorm1d):
+            bn_data.append(m.weight.data.clone())
+            bn_bias.append(m.bias.data.clone())
+            running_mean.append(m.running_mean.data.clone())
+            running_var.append(m.running_var.data.clone())
+            num_batches.append(m.num_batches_tracked.clone())
+        elif isinstance(m, nn.Linear):
+            weights_lin.append(m.weight.data.clone())
+
+    i=0
+    j=0
+    k=0
+    
+    for m in model_to.modules():   
+        if isinstance(m, nn.Conv2d):
+            m.weight.data = weights_conv[i]
+        elif isinstance(m, Conv2d_mvm):
+            m.weight.data = weights_conv[i]
+            i = i+1
+            
+        elif isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.BatchNorm1d):
+            m.weight.data = bn_data[j]
+            m.bias.data = bn_bias[j]
+            m.running_mean.data = running_mean[j]
+            m.running_var.data = running_var[j]
+            m.num_batches_tracked = num_batches[j]
+            j = j+1
+
+        elif isinstance(m, Linear_mvm):
+            m.weight.data = weights_lin[k]
+            k = k+1
+
+    model_to.linear_digital.weight.data = weights_lin[0]
+
+    #pdb.set_trace()
+    return model_to
+
+
 def setup_logging(log_file='log.txt'):
     """Setup logging configuration
     """
@@ -165,6 +215,8 @@ def validate(val_loader, model, criterion, attacker, attack_model, print_freq, l
         target_var = target.cuda()
         input_var = attacker.perturb(input_var, target_var, attack_model)
         # compute output
+        #model.to(device)
+        #model = torch.nn.DataParallel(model)
         output = model(input_var)
         # ---- insert debugging code if needed using debug flag
         if debug:

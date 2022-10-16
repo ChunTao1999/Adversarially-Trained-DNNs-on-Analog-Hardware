@@ -14,11 +14,10 @@ import torchvision
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
 import torchvision.transforms as transforms
+#import resnet20_cifar
 import resnet10_cifar
-import resnet20_cifar
 #import resnet32_cifar
 from mvm_params import *
-
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
@@ -31,14 +30,13 @@ if __name__=='__main__':
     parser.add_argument('--limit-test', default=0, type=int,  help='limit the number of batches to test')
     parser.add_argument('--debug', action='store_true',  help='enable debug mode')
     parser.add_argument('--store-act', action='store_true',  help='store activations')
-    parser.add_argument('--gpus', default='0')
 
 
     #---- MVM Arguments (default arguments are for 16 bit fixed point evaluation on MVM
     parser.add_argument('--mvm', default=False, help='evaluate on PUMA', action='store_true')
     parser.add_argument('--genieX', default=False, help='evaluate with GenieX', action='store_true')
     parser.add_argument('--ocv', default=False, help='Enable On Chip Variations', action='store_true')
-    parser.add_argument('--mvm-type', choices=['16x16_100k', '32x32_100k', '64x64_100k', '64x64_50k', '64x64_300k', '64x64_300k_new', 'ideal'], help='mvm model')
+    parser.add_argument('--mvm-type', choices=['16x16_100k', '32x32_100k', '64x64_100k', '64x64_50k', '64x64_300k', 'ideal'], help='mvm model')
     
     #---- Model setup
     parser.add_argument('--dataset', metavar='DATASET', default='cifar10', choices = ['cifar10', 'cifar100'], help='dataset name')
@@ -49,49 +47,26 @@ if __name__=='__main__':
     parser.add_argument('--inflate', default=1, type=int, help='model description')
     parser.add_argument('--pretrained', action='store', default=None,help='the path to the pretrained model')
     parser.add_argument('--batch-size', default=10, type=int,metavar='N', help='mini-batch size')
-    parser.add_argument('--custom-norm', default=True)    
+
+    
     
     args = parser.parse_args()
 
-    args.gpus = '0'
-    if len(args.gpus) > 1:
-        args.custom_norm = False
-    args.custom_norm = True
-    os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"]=args.gpus
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print('DEVICE:', device)
-    print('GPU Id(s) being used:', args.gpus)
-    
     if args.ocv:  
         Xbar_params['ocv'] = True
     else:
         np.random.seed(args.seed)
         torch.manual_seed(args.seed)
         torch.cuda.manual_seed(args.seed)
-    
-    args.mvm = True 
-    args.pretrained = './log/cifar100/clean-resnet20w1'
-    args.arch = 'resnet20'
-    args.mvm_type = '64x64_300k_new'    
-    args.inflate = 1
-    args.batch_size = 20
-    args.dataset = 'cifar100'
 
-    
+    args.mvm = True 
+    args.pretrained = './log/cifar10/clean-resnet10w1'
+    args.arch = 'resnet10'
+
     criterion = nn.CrossEntropyLoss().cuda()
 
-    if args.custom_norm == True:
-        transform = transforms.ToTensor()
-    else:
-        transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
-            ])
-    print(transform)
-
     #---- Preparing the Dataset 
-    if args.dataset == 'cifar10':
+    if args.dataset == 'cifar10': 
         print('loading cifar 10 dataset')
         testset     = torchvision.datasets.CIFAR10(root=args.datadir, train=False,  download=True, transform=transforms.ToTensor())
         mvm_params['wbit_frac']         = 13
@@ -114,8 +89,6 @@ if __name__=='__main__':
     attack_model = [] 
 
     #----- Loading Defending Model 
-
-    print(args.custom_norm)
 
     if args.arch == 'resnet20':
         pretrained_model = resnet20_cifar.Model(args)
@@ -147,10 +120,6 @@ if __name__=='__main__':
     else:
         model_eval = pretrained_model
         save_path = os.path.join(args.pretrained, "clean", "test")
-    #pdb.set_trace()
-    
-    model_eval.to(device)
-    model_eval = torch.nn.DataParallel(model_eval).cuda()
     
     if not os.path.exists(save_path):
         os.makedirs(save_path)

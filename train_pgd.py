@@ -1,8 +1,8 @@
 import sys
 import os
-sys.path.append('/home/nano01/a/roy77/AdversarialTraining_AnalogHardware/models/')
-sys.path.append('/home/nano01/a/roy77/AdversarialTraining_AnalogHardware/configs')
-sys.path.append('/home/nano01/a/roy77/AdversarialTraining_AnalogHardware/puma-functional-model-v3')
+sys.path.append('/home/nano01/a/tao88/AdversarialTraining_AnalogHardware/models/')
+sys.path.append('/home/nano01/a/tao88/AdversarialTraining_AnalogHardware/configs')
+sys.path.append('/home/nano01/a/tao88/AdversarialTraining_AnalogHardware/puma-functional-model-v3')
 
 import pdb
 import torch
@@ -20,7 +20,7 @@ import torch.backends.cudnn as cudnn
 import torchvision.transforms as transforms
 from torch.utils.data.sampler import SubsetRandomSampler
 #import resnet32_cifar
-#import resnet20_cifar
+import resnet20_cifar
 import resnet10_cifar
 from utils import *
 

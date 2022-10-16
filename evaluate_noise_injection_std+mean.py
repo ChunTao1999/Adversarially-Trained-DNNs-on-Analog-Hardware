@@ -15,7 +15,9 @@ import torch.optim as optim
 import torch.backends.cudnn as cudnn
 import torchvision.transforms as transforms
 import resnet10_cifar
+import resnet10_cifar_noisy
 import resnet20_cifar
+import resnet20_cifar_noisy
 #import resnet32_cifar
 from mvm_params import *
 
@@ -51,17 +53,23 @@ if __name__=='__main__':
     parser.add_argument('--batch-size', default=10, type=int,metavar='N', help='mini-batch size')
     parser.add_argument('--custom-norm', default=True)    
     
+    #---- Noise setup
+    #parser.add_argument('--noise-sigma', default=0.1, type=float, help='standard deviation of Gaussian noise (mean=0)')
+    parser.add_argument('--sigma-path', action='store', default=None, help='the path to the dictionary of layerwise std')
+    parser.add_argument('--mvm-std', choices=['32x32_100k', '64x64_100k'], help='which mvm model to use for its std')
+    parser.add_argument('--mean-path', action='store', default=None, help='the path to the dictionary of layerwise mean')
+
     args = parser.parse_args()
 
-    args.gpus = '0'
-    if len(args.gpus) > 1:
-        args.custom_norm = False
-    args.custom_norm = True
-    os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"]=args.gpus
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print('DEVICE:', device)
-    print('GPU Id(s) being used:', args.gpus)
+   # args.gpus = '0'
+   # if len(args.gpus) > 1:
+   #     args.custom_norm = False
+   # args.custom_norm = True
+   # os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+   # os.environ["CUDA_VISIBLE_DEVICES"]=args.gpus
+   # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+   # print('DEVICE:', device)
+   # print('GPU Id(s) being used:', args.gpus)
     
     if args.ocv:  
         Xbar_params['ocv'] = True
@@ -70,13 +78,11 @@ if __name__=='__main__':
         torch.manual_seed(args.seed)
         torch.cuda.manual_seed(args.seed)
     
-    args.mvm = True 
-    args.pretrained = './log/cifar100/clean-resnet20w1'
-    args.arch = 'resnet20'
-    args.mvm_type = '64x64_300k_new'    
-    args.inflate = 1
-    args.batch_size = 20
-    args.dataset = 'cifar100'
+    #args.pretrained = './log/cifar10/clean-resnet10w1'
+    #args.arch = 'resnet10'
+    #args.inflate = 1
+    #args.batch_size = 10
+    #args.dataset = 'cifar10'
 
     
     criterion = nn.CrossEntropyLoss().cuda()
@@ -119,16 +125,19 @@ if __name__=='__main__':
 
     if args.arch == 'resnet20':
         pretrained_model = resnet20_cifar.Model(args)
+        model_eval = resnet20_cifar_noisy.Model_NoisetoEveryConv_Mean(args)
     elif args.arch == 'resnet32':
         pretrained_model = resnet32_cifar.Model(args)
     elif args.arch == 'resnet10':
         pretrained_model = resnet10_cifar.Model(args)
+        model_eval = resnet10_cifar_noisy.Model_NoisetoEveryConv_Mean(args)
     else: 
         print("ERROR: Invalid Model Architecture")
         exit(0)
 
     checkpoint = torch.load(os.path.join(args.pretrained, 'best_model.th'))
     pretrained_model.load_state_dict(checkpoint['state_dict'])
+    model_eval.load_state_dict(checkpoint['state_dict'])
     print('loading pretrained model from ==> {}'.format(args.pretrained))
     
     if args.mvm:
@@ -145,12 +154,12 @@ if __name__=='__main__':
         model_eval = ModelClone(model_to=model_eval, model_from=pretrained_model)
         save_path = os.path.join(args.pretrained, "clean", "test_mvm-{}".format(args.mvm_type))
     else:
-        model_eval = pretrained_model
-        save_path = os.path.join(args.pretrained, "clean", "test")
+        #model_eval = pretrained_model
+        save_path = os.path.join(args.pretrained, "clean", "test_noise_to_every_conv_{}_std+mean".format(args.mvm_std))
     #pdb.set_trace()
     
-    model_eval.to(device)
-    model_eval = torch.nn.DataParallel(model_eval).cuda()
+    model_eval.cuda()
+    #model_eval = torch.nn.DataParallel(model_eval).cuda()
     
     if not os.path.exists(save_path):
         os.makedirs(save_path)
@@ -163,7 +172,7 @@ if __name__=='__main__':
     
     model_eval.cuda()
     model_eval.eval()
-        
+    
     [test_loss, testacc] = validate(testloader, model_eval, criterion, attacker, attack_model, args.print_freq, args.limit_test, args.debug)
     logging.info('Test \t({:.2f}%)]\tLoss: {:.6f}'.format(testacc, test_loss))
 

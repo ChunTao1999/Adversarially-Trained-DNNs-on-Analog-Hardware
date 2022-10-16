@@ -18,6 +18,7 @@ import resnet10_cifar
 import resnet20_cifar
 #import resnet32_cifar
 from mvm_params import *
+from custom_dataset import *
 
 
 if __name__=='__main__':
@@ -32,6 +33,8 @@ if __name__=='__main__':
     parser.add_argument('--debug', action='store_true',  help='enable debug mode')
     parser.add_argument('--store-act', action='store_true',  help='store activations')
     parser.add_argument('--gpus', default='0')
+    parser.add_argument('--customdir', default='./customdata/cifar10/Non-Adaptive-WB-attacks/')
+    parser.add_argument('--customdata')
 
 
     #---- MVM Arguments (default arguments are for 16 bit fixed point evaluation on MVM
@@ -51,6 +54,7 @@ if __name__=='__main__':
     parser.add_argument('--batch-size', default=10, type=int,metavar='N', help='mini-batch size')
     parser.add_argument('--custom-norm', default=True)    
     
+    parser.add_argument('--noise-layer', default=0, type=int, help='the layer at which to add a noise')
     args = parser.parse_args()
 
     args.gpus = '0'
@@ -70,13 +74,15 @@ if __name__=='__main__':
         torch.manual_seed(args.seed)
         torch.cuda.manual_seed(args.seed)
     
-    args.mvm = True 
-    args.pretrained = './log/cifar100/clean-resnet20w1'
-    args.arch = 'resnet20'
-    args.mvm_type = '64x64_300k_new'    
-    args.inflate = 1
-    args.batch_size = 20
-    args.dataset = 'cifar100'
+    #args.mvm = True 
+    #args.pretrained = './log/cifar10/clean-resnet10w1'
+    #args.arch = 'resnet10'
+    #args.mvm_type = '64x64_300k_new'    
+    #args.inflate = 1
+    #args.batch_size = 10
+    #args.dataset = 'cifar10'
+    #args.noise_layer = 0
+    #args.limit_test = 100
 
     
     criterion = nn.CrossEntropyLoss().cuda()
@@ -91,20 +97,38 @@ if __name__=='__main__':
     print(transform)
 
     #---- Preparing the Dataset 
-    if args.dataset == 'cifar10':
+    if args.customdata:
+        path = os.path.join(args.customdir, args.customdata)
+        print('loading custom dataset from ==>', path)
+        testset     = CUSTOM_DATA(root=path, split='test', transform=transforms.ToTensor()) 
+        if args.dataset == 'cifar10': 
+            print('loading cifar 10 custom dataset from ==> {}'.format(path))
+            mvm_params['wbit_frac']         = 13
+            mvm_params['ibit_frac']         = 13 
+            args.classes = 10
+        elif args.dataset == 'cifar100':
+            print('loading cifar 100 custom dataset from ==> {}'.format(path))
+            mvm_params['wbit_frac']         = 12
+            mvm_params['ibit_frac']         = 12
+            args.classes = 100
+        else:
+            print.info("ERROR: Invalid dataset")
+            exit(0)           
+    elif args.dataset == 'cifar10': 
         print('loading cifar 10 dataset')
-        testset     = torchvision.datasets.CIFAR10(root=args.datadir, train=False,  download=True, transform=transforms.ToTensor())
+        testset     = torchvision.datasets.CIFAR10(root=args.datadir, train=False,  download=True, transform=transform)
         mvm_params['wbit_frac']         = 13
         mvm_params['ibit_frac']         = 13 
         args.classes = 10
+        
     elif args.dataset == 'cifar100':
         print('loading cifar 100 dataset')
-        testset     = torchvision.datasets.CIFAR100(root=args.datadir, train=False,  download=True, transform=transforms.ToTensor())
+        testset     = torchvision.datasets.CIFAR100(root=args.datadir, train=False,  download=True, transform=transform)
         mvm_params['wbit_frac']         = 12
         mvm_params['ibit_frac']         = 12
         args.classes = 100
     else:
-        logging.info("EROOR: Invalid dataset")
+        logging.info("ERROR: Invalid dataset")
         exit(0)
 
     testloader  = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=args.workers)
@@ -129,28 +153,20 @@ if __name__=='__main__':
 
     checkpoint = torch.load(os.path.join(args.pretrained, 'best_model.th'))
     pretrained_model.load_state_dict(checkpoint['state_dict'])
+    #pdb.set_trace()
     print('loading pretrained model from ==> {}'.format(args.pretrained))
     
-    if args.mvm:
-        print("Copying ideal weights to mvm model")  
-        if args.arch == 'resnet20':
-            model_eval = resnet20_cifar.MVM_Model(args, mvm_params)
-        elif args.arch == 'resnet32':
-            model_eval = resnet32_cifar.MVM_Model(args, mvm_params)
-        elif args.arch == 'resnet10':
-            model_eval = resnet10_cifar.MVM_Model(args, mvm_params)
-        else:
-            print("ERROR: Invalid Model Architecture")
-            exit(0)      
-        model_eval = ModelClone(model_to=model_eval, model_from=pretrained_model)
-        save_path = os.path.join(args.pretrained, "clean", "test_mvm-{}".format(args.mvm_type))
-    else:
-        model_eval = pretrained_model
-        save_path = os.path.join(args.pretrained, "clean", "test")
     #pdb.set_trace()
+    model_eval = resnet10_cifar.Model_ConvOut(args)
+    model_eval.load_state_dict(checkpoint['state_dict'])
     
-    model_eval.to(device)
-    model_eval = torch.nn.DataParallel(model_eval).cuda()
+    #pdb.set_trace()
+    noise_model_eval = resnet10_cifar.Model_NoisetoConv(args)
+    noise_model_eval.load_state_dict(checkpoint['state_dict'])
+    
+    if args.customdata:
+        save_path = os.path.join(args.pretrained, args.customdata, "noise_attenuation")
+    save_path = os.path.join(args.pretrained, "clean", "noise_attenuation")
     
     if not os.path.exists(save_path):
         os.makedirs(save_path)
@@ -163,7 +179,83 @@ if __name__=='__main__':
     
     model_eval.cuda()
     model_eval.eval()
-        
-    [test_loss, testacc] = validate(testloader, model_eval, criterion, attacker, attack_model, args.print_freq, args.limit_test, args.debug)
-    logging.info('Test \t({:.2f}%)]\tLoss: {:.6f}'.format(testacc, test_loss))
+    noise_model_eval.cuda()
+    noise_model_eval.eval()
+      
+    batch_time = AverageMeter()
+    losses = AverageMeter()
+    top1 = AverageMeter()    
+    end = time.time()
+    
+    total_err = {}
+    total_clean = {}
+    error_ratio = {}
+    if args.customdata:
+        for i, (input, target, label) in enumerate(testloader):
+            print('{}/{}'.format(i+1, len(testloader)))
+            target = target.cuda()
+            input_var = input.cuda()
+            target_var = target.cuda()
+
+            #pdb.set_trace()
+
+            output_clean = model_eval(input_var)
+            output_noise = noise_model_eval(input_var)
+            #pdb.set_trace()
+
+            clean = {}
+            noisy = {}
+            err = {}
+
+            for key, value in output_clean.items():
+                clean[key] = output_clean[key].detach().cpu().numpy().reshape([args.batch_size, -1])
+                noisy[key] = output_noise[key].detach().cpu().numpy().reshape([args.batch_size, -1])
+                err[key] = noisy[key]-clean[key]
+                if i == 0:
+                    total_err[key] = err[key]
+                    total_clean[key] = clean[key]
+                else:
+                    total_err[key] = np.append(total_err[key], err[key])
+                    total_clean[key] = np.append(total_clean[key], clean[key])
+            if (i+1)%args.limit_test == 0:
+                break
+        for key, value in total_err.items():
+            error_ratio[key] = np.linalg.norm(total_err[key])/np.linalg.norm(total_clean[key])
+        for key, value in error_ratio.items():
+            print(value)
+    else:
+        for i, (input, target) in enumerate(testloader):
+            print('{}/{}'.format(i+1, len(testloader)))
+            target = target.cuda()
+            input_var = input.cuda()
+            target_var = target.cuda()
+
+            output_clean = model_eval(input_var)
+            output_noise = noise_model_eval(input_var)
+            clean = {}
+            noisy = {}
+            err = {}
+
+            for key, value in output_clean.items():
+                clean[key] = output_clean[key].detach().cpu().numpy().reshape([args.batch_size, -1])
+                noisy[key] = output_noise[key].detach().cpu().numpy().reshape([args.batch_size, -1])
+                err[key] = noisy[key]-clean[key]
+                #pdb.set_trace()
+                if i == 0:
+                    total_err[key] = err[key]
+                    total_clean[key] = clean[key]
+                else:
+                    total_err[key] = np.append(total_err[key], err[key])
+                    total_clean[key] = np.append(total_clean[key], clean[key])
+            if (i+1)%args.limit_test == 0:
+                break
+        for key, value in total_err.items():
+            error_ratio[key] = np.linalg.norm(total_err[key])/np.linalg.norm(total_clean[key])
+        for key, value in error_ratio.items():
+            print(value)
+
+
+    #pdb.set_trace()
+    
+    #np.save(os.path.join(save_path, 'each_conv_layer_norm.npy'.format(args.batch_size*args.limit_test)), each_conv_layer_norm, allow_pickle=True)
 

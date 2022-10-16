@@ -30,6 +30,7 @@ mvm_params['16x16_100k']['inmax_test']  = 1.22
 mvm_params['16x16_100k']['inmin_test']  = 0.81
 mvm_params['16x16_100k']['path']        = './genieX_models/final_16x16_mlp2layer_xbar_16x16_100_all_dataset_500_100k_standard_sgd.pth.tar'
 mvm_params['16x16_100k']['genieX']      = True
+
 #---- 32x32_100k
 mvm_params['32x32_100k']                = {}
 mvm_params['32x32_100k']['size']        = 32
@@ -59,6 +60,7 @@ mvm_params['64x64_50k']['inmax_test']   = 1.65
 mvm_params['64x64_50k']['inmin_test']   = 1.1
 mvm_params['64x64_50k']['path']         = './genieX_models/final_64x64_mlp2layer_xbar_64x64_100_all_dataset_500_50k_standard_sgd.pth.tar'
 mvm_params['64x64_50k']['genieX']        = True
+
 #---- 64x64_300k
 mvm_params['64x64_300k']                = {}
 mvm_params['64x64_300k']['size']        = 64
@@ -70,4 +72,54 @@ mvm_params['64x64_300k']['path']        = './genieX_models/final_64x64_mlp2layer
 mvm_params['64x64_300k']['genieX']      = True
 
 
+#---- New GenieX Models
+#---- 16x16_100k_new
+mvm_params['16x16_100k_new']                = {}
+mvm_params['16x16_100k_new']['size']        = 16
+mvm_params['16x16_100k_new']['Ron']         = 100*10**3
+mvm_params['16x16_100k_new']['Ron_Roff']    = 6
+mvm_params['16x16_100k_new']['inmax_test']  = 0.99
+mvm_params['16x16_100k_new']['inmin_test']  = 0.88
+mvm_params['16x16_100k_new']['path']        = './pretrained_models/XB_16_stream1slice207dropout50epochs.pth.tar'
+mvm_params['16x16_100k_new']['genieX']      = True
+
+#---- 32x32_100k_new
+mvm_params['32x32_100k_new']                = {}
+mvm_params['32x32_100k_new']['size']        = 32
+mvm_params['32x32_100k_new']['Ron']         = 100*10**3
+mvm_params['32x32_100k_new']['Ron_Roff']    = 6
+mvm_params['32x32_100k_new']['inmax_test']  = 1.03
+mvm_params['32x32_100k_new']['inmin_test']  = 0.87
+mvm_params['32x32_100k_new']['path']        = './pretrained_models/XB_32_stream1slice207dropout50epochs.pth.tar'
+mvm_params['32x32_100k_new']['genieX']      = True
+
+#---- 32x32_100k_new
+mvm_params['64x64_100k_new']                = {}
+mvm_params['64x64_100k_new']['size']        = 64
+mvm_params['64x64_100k_new']['Ron']         = 100*10**3
+mvm_params['64x64_100k_new']['Ron_Roff']    = 6
+mvm_params['64x64_100k_new']['inmax_test']  = 1.12
+mvm_params['64x64_100k_new']['inmin_test']  = 0.86
+mvm_params['64x64_100k_new']['path']        = './pretrained_models/XB_64_stream1slice207dropout50epochs.pth.tar'
+mvm_params['64x64_100k_new']['genieX']      = True
+
+#---- 128x128_100k_new
+mvm_params['128x128_100k_new']                = {}
+mvm_params['128x128_100k_new']['size']        = 128
+mvm_params['128x128_100k_new']['Ron']         = 100*10**3
+mvm_params['128x128_100k_new']['Ron_Roff']    = 6
+mvm_params['128x128_100k_new']['inmax_test']  = 1.35
+mvm_params['128x128_100k_new']['inmin_test']  = 0.83
+mvm_params['128x128_100k_new']['path']        = './pretrained_models/XB_128_stream1slice207dropout50epochs.pth.tar'
+mvm_params['128x128_100k_new']['genieX']      = True
+
+#---- 64x64_300k_new
+mvm_params['64x64_300k_new']                = {}
+mvm_params['64x64_300k_new']['size']        = 64
+mvm_params['64x64_300k_new']['Ron']         = 300*10**3
+mvm_params['64x64_300k_new']['Ron_Roff']    = 6
+mvm_params['64x64_300k_new']['inmax_test']  = 1.0871
+mvm_params['64x64_300k_new']['inmin_test']  = 0.92
+mvm_params['64x64_300k_new']['path']        = './genieX_models/final_64x64_mlp2layer_xbar300k_debo_92.pth.tar'
+mvm_params['64x64_300k_new']['genieX']      = True
 
